@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Codeforces Problem Randomizer</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <nav class="navbar">
+        <div class="nav-brand">
+            <span class="brand-icon"><i class="fa-solid fa-bullseye"></i></span>
+            <span class="brand-text">CF Randomizer</span>
+        </div>
+        <div class="nav-links">
+            <a href="#home" data-nav="home" class="nav-link active">
+                <span class="nav-icon"><i class="fa-solid fa-house"></i></span>
+                <span>Home</span>
+            </a>
+            <a href="#profile" data-nav="profile" class="nav-link">
+                <span class="nav-icon"><i class="fa-solid fa-user"></i></span>
+                <span>Profile</span>
+            </a>
+            <a href="#recommendations" data-nav="recommendations" class="nav-link">
+                <span class="nav-icon"><i class="fa-solid fa-lightbulb"></i></span>
+                <span>Recommendations</span>
+            </a>
+            <a href="#cheatsheet" data-nav="cheatsheet" class="nav-link">
+                <span class="nav-icon"><i class="fa-solid fa-book"></i></span>
+                <span>Cheatsheet</span>
+            </a>
+        </div>
+        <div class="nav-actions">
+            <button id="theme-toggle" class="theme-toggle" title="Toggle dark mode">
+                <span id="theme-icon" class="theme-icon"></span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Connection Status -->
+    <div id="connection-status" class="connection-status hidden"></div>
+
+    <!-- Page Container -->
+    <div class="page-container">
+        <!-- Home Page (Problem Randomizer) -->
+        <div id="page-home" class="page active">
+            <div class="container">
+                <header>
+                    <h1>Codeforces Problem Randomizer</h1>
+                    <p class="subtitle">Find your next practice problem</p>
+                </header>
+
+                <main class="dashboard-layout">
+                    <!-- Left Column: Main Controls -->
+                    <div class="main-column">
+                        <!-- Always Visible: Rating Range & Action -->
+                        <section class="primary-controls">
+                            <div class="rating-action-row">
+                                <div class="rating-compact">
+                                    <div class="input-group-inline">
+                                        <label for="min-rating">Min</label>
+                                        <select id="min-rating"></select>
+                                    </div>
+                                    <span class="rating-separator">to</span>
+                                    <div class="input-group-inline">
+                                        <label for="max-rating">Max</label>
+                                        <select id="max-rating"></select>
+                                    </div>
+                                </div>
+                                <div class="action-compact">
+                                    <div id="matching-count" class="matching-count-inline">
+                                        <span id="problem-count">--</span> problems
+                                    </div>
+                                    <button type="button" id="randomize-btn" class="btn-primary btn-randomize">
+                                        Get Random Problem
+                                    </button>
+                                </div>
+                            </div>
+                        </section>
+
+                        <!-- Error Display -->
+                        <div id="error-container" class="error-container hidden">
+                            <div id="error-message"></div>
+                            <div class="error-actions">
+                                <button id="retry-btn" class="btn-retry hidden">Retry</button>
+                            </div>
+                        </div>
+
+                        <!-- Loading Indicator -->
+                        <div id="loading" class="loading hidden">
+                            <div class="spinner"></div>
+                            <p id="loading-message">Loading problems...</p>
+                        </div>
+
+                        <!-- Result Display -->
+                        <section id="result-section" class="result-section hidden">
+                            <h2>Your Problem</h2>
+                            <div class="problem-card">
+                                <div class="problem-header">
+                                    <span id="problem-id" class="problem-id"></span>
+                                    <span id="problem-rating" class="problem-rating"></span>
+                                </div>
+                                <h3 id="problem-name" class="problem-name"></h3>
+                                <div id="problem-stats" class="problem-stats"></div>
+                                <div id="problem-tags" class="problem-tags"></div>
+                                <div class="problem-actions">
+                                    <a id="problem-link" href="#" target="_blank" class="btn-primary">
+                                        Open on Codeforces
+                                    </a>
+                                    <button type="button" id="try-another" class="btn-secondary">
+                                        Try Another
+                                    </button>
+                                    <button type="button" id="start-timer" class="btn-secondary">
+                                        Start Timer
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Practice Timer -->
+                            <div id="timer-section" class="timer-section hidden">
+                                <h3>Practice Timer</h3>
+                                <div class="timer-display" id="timer-display">00:00:00</div>
+                                <div class="timer-controls">
+                                    <button id="timer-pause" class="btn-secondary">Pause</button>
+                                    <button id="timer-reset" class="btn-secondary">Reset</button>
+                                    <button id="timer-stop" class="btn-secondary">Stop</button>
+                                </div>
+                            </div>
+                        </section>
+
+                        <!-- Collapsible Filters -->
+                        <div class="accordion-container">
+                            <!-- Profile Input Section -->
+                            <section class="accordion-section">
+                                <button class="accordion-header" data-accordion="profile-input">
+                                    <span class="accordion-title">
+                                        <span class="accordion-icon"></span>
+                                        Codeforces Profile
+                                    </span>
+                                    <span class="accordion-badge" id="profile-badge"></span>
+                                </button>
+                                <div class="accordion-content" id="profile-input-content">
+                                    <p class="section-hint">
+                                        Load your CF profile to exclude solved problems and get personalized recommendations
+                                    </p>
+                                    <div class="handle-input">
+                                        <input type="text" id="cf-handle" placeholder="Enter your Codeforces handle">
+                                        <button type="button" id="validate-handle" class="btn-secondary">Load Profile</button>
+                                    </div>
+                                    <div id="handle-status" class="handle-status"></div>
+                                </div>
+                            </section>
+
+                            <!-- Contest Type Section -->
+                            <section class="accordion-section">
+                                <button class="accordion-header" data-accordion="contest-type">
+                                    <span class="accordion-title">
+                                        <span class="accordion-icon"></span>
+                                        Contest Type
+                                    </span>
+                                    <span class="accordion-badge" id="contest-badge">All</span>
+                                </button>
+                                <div class="accordion-content" id="contest-type-content">
+                                    <div class="input-group">
+                                        <select id="contest-filter">
+                                            <option value="all">All Contests</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </section>
+
+                            <!-- Problem Tags Section -->
+                            <section class="accordion-section">
+                                <button class="accordion-header" data-accordion="tags">
+                                    <span class="accordion-title">
+                                        <span class="accordion-icon"></span>
+                                        Problem Tags
+                                    </span>
+                                    <span class="accordion-badge" id="tags-badge">0 selected</span>
+                                </button>
+                                <div class="accordion-content" id="tags-content">
+                                    <div class="tag-controls">
+                                        <button type="button" id="select-all-tags" class="btn-secondary btn-sm">Select All</button>
+                                        <button type="button" id="clear-tags" class="btn-secondary btn-sm">Clear All</button>
+                                    </div>
+                                    <div class="tag-match-mode">
+                                        <label>
+                                            <input type="radio" name="tag-mode" value="any" checked>
+                                            Match ANY selected tag
+                                        </label>
+                                        <label>
+                                            <input type="radio" name="tag-mode" value="all">
+                                            Match ALL selected tags
+                                        </label>
+                                    </div>
+                                    <div id="tags-container" class="tags-grid"></div>
+                                </div>
+                            </section>
+
+                            <!-- Problem History Section -->
+                            <section class="accordion-section">
+                                <button class="accordion-header" data-accordion="history">
+                                    <span class="accordion-title">
+                                        <span class="accordion-icon"></span>
+                                        Problem History
+                                    </span>
+                                    <span class="accordion-badge" id="history-badge">0</span>
+                                </button>
+                                <div class="accordion-content" id="history-content">
+                                    <div class="history-options">
+                                        <label class="checkbox-label">
+                                            <input type="checkbox" id="skip-seen" checked>
+                                            <span>Skip problems I've already seen</span>
+                                        </label>
+                                        <div class="history-status">
+                                            <span id="history-count">0</span> problems in history
+                                            <button type="button" id="clear-history" class="btn-link">Clear history</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </section>
+                        </div>
+                    </div>
+
+                    <!-- Right Column: Profile Info -->
+                    <div class="side-column" id="home-side-column" style="display: none;">
+                        <!-- Profile Stats Section (Collapsible) -->
+                        <section id="profile-stats" class="profile-stats hidden">
+                            <button class="profile-collapse-btn" id="toggle-profile-details" title="Toggle profile details">
+                                <span class="collapse-icon"></span>
+                            </button>
+                            <div class="profile-header">
+                                <div class="profile-info">
+                                    <img id="profile-avatar" class="profile-avatar" src="" alt="">
+                                    <div class="profile-name-rank">
+                                        <span id="profile-handle" class="profile-handle"></span>
+                                        <span id="profile-rank" class="profile-rank"></span>
+                                    </div>
+                                </div>
+                                <button id="clear-profile" class="btn-secondary btn-sm">Clear</button>
+                            </div>
+
+                            <!-- Collapsible Profile Details -->
+                            <div class="profile-details" id="profile-details">
+                                <!-- Main Stats Grid -->
+                                <div class="profile-stats-grid">
+                                    <div class="stat-item">
+                                        <span id="profile-rating" class="stat-value">--</span>
+                                        <span class="stat-label">Current Rating</span>
+                                    </div>
+                                    <div class="stat-item">
+                                        <span id="profile-max-rating" class="stat-value">--</span>
+                                        <span class="stat-label">Max Rating</span>
+                                    </div>
+                                    <div class="stat-item">
+                                        <span id="profile-solved" class="stat-value">--</span>
+                                        <span class="stat-label">Problems Solved</span>
+                                    </div>
+                                    <div class="stat-item">
+                                        <span id="profile-contests" class="stat-value">--</span>
+                                        <span class="stat-label">Contests</span>
+                                    </div>
+                                </div>
+
+                                <!-- Rating Trend Indicator -->
+                                <div id="rating-trend-section" class="rating-trend-section">
+                                    <h3>Rating Trend</h3>
+                                    <div id="rating-trend" class="rating-trend">
+                                        <span id="trend-icon" class="trend-icon"></span>
+                                        <span id="trend-text" class="trend-text">--</span>
+                                    </div>
+                                    <div id="trend-details" class="trend-details"></div>
+                                </div>
+
+                                <!-- Solved by Rating Breakdown -->
+                                <div id="rating-breakdown-section" class="breakdown-section collapsible-breakdown">
+                                    <button class="breakdown-toggle" data-breakdown="rating">
+                                        <h3>Problems Solved by Rating</h3>
+                                        <span class="breakdown-icon"></span>
+                                    </button>
+                                    <div class="breakdown-content" id="rating-breakdown-content">
+                                        <div id="rating-breakdown" class="rating-breakdown"></div>
+                                    </div>
+                                </div>
+
+                                <!-- Solved by Tags Breakdown -->
+                                <div id="tags-breakdown-section" class="breakdown-section collapsible-breakdown">
+                                    <button class="breakdown-toggle" data-breakdown="tags">
+                                        <h3>Problems Solved by Tags</h3>
+                                        <span class="breakdown-icon"></span>
+                                    </button>
+                                    <div class="breakdown-content" id="tags-breakdown-content">
+                                        <div id="tags-breakdown" class="tags-breakdown"></div>
+                                        <button id="show-more-tags" class="btn-link" style="margin-top: 10px;">Show more tags</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </section>
+                    </div>
+                </main>
+
+                <footer>
+                    <p>Data from <a href="https://codeforces.com" target="_blank">Codeforces API</a></p>
+                </footer>
+            </div>
+        </div>
+
+        <!-- Recommendations Page -->
+        <div id="page-recommendations" class="page">
+            <div class="container">
+                <header>
+                    <h1>Personalized Recommendations</h1>
+                    <p class="subtitle">Tailored practice guide based on your solving history</p>
+                </header>
+                <div class="recommendations-container" style="display: grid; gap: 20px; max-width: 1400px; margin: 0 auto;">
+                    <!-- Practice Guide Section -->
+                    <section id="practice-guide-section" class="practice-guide-section hidden">
+                        <div id="practice-guide-content"></div>
+                    </section>
+
+                    <!-- Recommended Problems Section -->
+                    <section id="recommended-problems-section" class="recommended-problems-section hidden">
+                        <div id="recommended-problems-content"></div>
+                    </section>
+
+                    <!-- Weak Tags Section -->
+                    <section id="weak-tags-section" class="weak-tags-section hidden">
+                        <h2>Recommended Tags to Practice</h2>
+                        <p class="section-hint">
+                            Based on your solve patterns, practice these topics:
+                        </p>
+                        <div id="weak-tags-list" class="weak-tags-list"></div>
+                        <button id="apply-weak-tags" class="btn-secondary" style="margin-top: 10px;">Apply These Tags</button>
+                    </section>
+                </div>
+            </div>
+        </div>
+
+        <!-- Profile Page -->
+        <div id="page-profile" class="page">
+            <div class="container profile-page-container">
+                <div id="profile-page-content">
+                    <!-- Content loaded by ProfilePage.js -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Cheatsheet Page -->
+        <div id="page-cheatsheet" class="page">
+            <div class="container cheatsheet-page-container">
+                <div id="cheatsheet-page-content">
+                    <!-- Content loaded by CheatsheetPage.js -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/constants.js"></script>
+    <script src="js/cache.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/filters.js"></script>
+    <script src="js/recommendations.js"></script>
+    <script src="js/router.js"></script>
+    <script src="js/profile-page.js"></script>
+    <script src="js/cheatsheet-page.js"></script>
+    <script src="js/recommendations-page.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
