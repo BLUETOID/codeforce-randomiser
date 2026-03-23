@@ -51,50 +51,6 @@ A smart problem randomizer for Codeforces that helps you find practice problems 
 7. **Weak Tags**: After loading your profile, click "Apply These Tags" to practice recommended topics
 8. **Recommendations Page**: Open the Recommendations tab to see your personalized guide and suggested problems
 
-### CLI Tool
-
-#### Installation
-```bash
-cd cli
-npm install
-```
-
-#### Usage
-
-**Basic usage** (800-1400 rating range by default):
-```bash
-node cf-random.js
-```
-
-**Specify rating range and tags**:
-```bash
-node cf-random.js --min 1000 --max 1500 --tags dp,greedy
-```
-
-**Exclude problems you've solved**:
-```bash
-node cf-random.js --min 1200 --max 1600 --exclude your_cf_handle
-```
-
-**Require ALL tags** (instead of ANY):
-```bash
-node cf-random.js --min 1400 --max 1800 --tags dp,graphs --all
-```
-
-**List all available tags**:
-```bash
-node cf-random.js --list-tags
-```
-
-#### CLI Options
-```
---min <rating>      Minimum problem rating (default: 800)
---max <rating>      Maximum problem rating (default: 1400)
---tags <tags>       Comma-separated list of tags (e.g., dp,greedy)
---all               Require ALL tags instead of ANY
---exclude <handle>  Exclude problems solved by this Codeforces handle
---list-tags         List all available problem tags
-```
 
 ## How It Works
 
