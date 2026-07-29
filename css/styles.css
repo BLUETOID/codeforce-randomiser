@@ -468,7 +468,7 @@ header h1 {
     accent-color: var(--primary-color);
 }
 
-.tag-checkbox input:checked + span {
+.tag-checkbox input:checked+span {
     color: var(--primary-color);
     font-weight: 500;
 }
@@ -631,7 +631,9 @@ body.dark-mode .error-container {
 }
 
 @keyframes spin {
-    to { transform: rotate(360deg); }
+    to {
+        transform: rotate(360deg);
+    }
 }
 
 .loading p {
@@ -1161,15 +1163,41 @@ body.dark-mode .theme-icon::after {
 }
 
 /* Rating bar colors based on Codeforces difficulty */
-.rating-bar.r-800 { background: #808080; }
-.rating-bar.r-1000 { background: #008000; }
-.rating-bar.r-1200 { background: #03a89e; }
-.rating-bar.r-1400 { background: #0000ff; }
-.rating-bar.r-1600 { background: #aa00aa; }
-.rating-bar.r-1900 { background: #ff8c00; }
-.rating-bar.r-2100 { background: #ff7700; }
-.rating-bar.r-2400 { background: #ff0000; }
-.rating-bar.r-2700 { background: #aa0000; }
+.rating-bar.r-800 {
+    background: #808080;
+}
+
+.rating-bar.r-1000 {
+    background: #008000;
+}
+
+.rating-bar.r-1200 {
+    background: #03a89e;
+}
+
+.rating-bar.r-1400 {
+    background: #0000ff;
+}
+
+.rating-bar.r-1600 {
+    background: #aa00aa;
+}
+
+.rating-bar.r-1900 {
+    background: #ff8c00;
+}
+
+.rating-bar.r-2100 {
+    background: #ff7700;
+}
+
+.rating-bar.r-2400 {
+    background: #ff0000;
+}
+
+.rating-bar.r-2700 {
+    background: #aa0000;
+}
 
 /* Tags Breakdown */
 .tags-breakdown {
@@ -2933,6 +2961,7 @@ body.dark-mode .tips-card.warning-card {
         opacity: 0;
         transform: translateY(10px);
     }
+
     to {
         opacity: 1;
         transform: translateY(0);
@@ -3246,16 +3275,41 @@ body.dark-mode .heatmap-day.level-4 {
     border-radius: 2px;
 }
 
-.legend-box.level-0 { background: var(--tag-bg); }
-.legend-box.level-1 { background: rgba(22, 163, 74, 0.3); }
-.legend-box.level-2 { background: rgba(22, 163, 74, 0.5); }
-.legend-box.level-3 { background: rgba(22, 163, 74, 0.7); }
-.legend-box.level-4 { background: #16a34a; }
+.legend-box.level-0 {
+    background: var(--tag-bg);
+}
 
-body.dark-mode .legend-box.level-1 { background: rgba(74, 222, 128, 0.2); }
-body.dark-mode .legend-box.level-2 { background: rgba(74, 222, 128, 0.4); }
-body.dark-mode .legend-box.level-3 { background: rgba(74, 222, 128, 0.6); }
-body.dark-mode .legend-box.level-4 { background: #4ade80; }
+.legend-box.level-1 {
+    background: rgba(22, 163, 74, 0.3);
+}
+
+.legend-box.level-2 {
+    background: rgba(22, 163, 74, 0.5);
+}
+
+.legend-box.level-3 {
+    background: rgba(22, 163, 74, 0.7);
+}
+
+.legend-box.level-4 {
+    background: #16a34a;
+}
+
+body.dark-mode .legend-box.level-1 {
+    background: rgba(74, 222, 128, 0.2);
+}
+
+body.dark-mode .legend-box.level-2 {
+    background: rgba(74, 222, 128, 0.4);
+}
+
+body.dark-mode .legend-box.level-3 {
+    background: rgba(74, 222, 128, 0.6);
+}
+
+body.dark-mode .legend-box.level-4 {
+    background: #4ade80;
+}
 
 .streak-stats {
     display: flex;
@@ -3732,20 +3786,24 @@ body.dark-mode .cheatsheet-card pre {
     border-top: 1px solid rgba(255, 255, 255, 0.05);
 }
 
-.algo-table, .ds-table {
+.algo-table,
+.ds-table {
     width: 100%;
     border-collapse: collapse;
     font-size: 0.875rem;
 }
 
-.algo-table th, .algo-table td,
-.ds-table th, .ds-table td {
+.algo-table th,
+.algo-table td,
+.ds-table th,
+.ds-table td {
     padding: 12px 16px;
     text-align: left;
     border-bottom: 1px solid var(--border-color);
 }
 
-.algo-table th, .ds-table th {
+.algo-table th,
+.ds-table th {
     font-weight: 600;
     color: var(--text-secondary);
     font-size: 0.75rem;
@@ -3754,7 +3812,8 @@ body.dark-mode .cheatsheet-card pre {
     background: var(--tag-bg);
 }
 
-.algo-table td, .ds-table td {
+.algo-table td,
+.ds-table td {
     color: var(--text-primary);
 }
 
@@ -3958,11 +4017,25 @@ body.dark-mode .cheatsheet-card pre {
     flex-shrink: 0;
 }
 
-.verdict-label.ok { color: var(--success-color); }
-.verdict-label.wa { color: var(--error-color); }
-.verdict-label.tle { color: var(--warning-color); }
-.verdict-label.rte { color: #8b5cf6; }
-.verdict-label.ce { color: var(--text-secondary); }
+.verdict-label.ok {
+    color: var(--success-color);
+}
+
+.verdict-label.wa {
+    color: var(--error-color);
+}
+
+.verdict-label.tle {
+    color: var(--warning-color);
+}
+
+.verdict-label.rte {
+    color: #8b5cf6;
+}
+
+.verdict-label.ce {
+    color: var(--text-secondary);
+}
 
 .verdict-bar-track {
     flex: 1;
@@ -3983,11 +4056,25 @@ body.dark-mode .cheatsheet-card pre {
     transition: width 0.5s ease;
 }
 
-.verdict-bar-fill.ok { background: var(--success-color); }
-.verdict-bar-fill.wa { background: var(--error-color); }
-.verdict-bar-fill.tle { background: var(--warning-color); }
-.verdict-bar-fill.rte { background: #8b5cf6; }
-.verdict-bar-fill.ce { background: var(--secondary-color); }
+.verdict-bar-fill.ok {
+    background: var(--success-color);
+}
+
+.verdict-bar-fill.wa {
+    background: var(--error-color);
+}
+
+.verdict-bar-fill.tle {
+    background: var(--warning-color);
+}
+
+.verdict-bar-fill.rte {
+    background: #8b5cf6;
+}
+
+.verdict-bar-fill.ce {
+    background: var(--secondary-color);
+}
 
 .verdict-bar-count {
     font-size: 0.6875rem;
@@ -4204,7 +4291,7 @@ body.dark-mode .cheatsheet-card pre {
 
 .rec-track-tab .tab-count {
     font-size: 0.6875rem;
-    background: rgba(255,255,255,0.2);
+    background: rgba(255, 255, 255, 0.2);
     padding: 1px 6px;
     border-radius: 3px;
     margin-left: 6px;
@@ -4454,12 +4541,29 @@ body.dark-mode .cheatsheet-card pre {
     padding-right: 6px;
 }
 
-.mastery-bar-fill.beginner { background: #808080; }
-.mastery-bar-fill.developing { background: #008000; }
-.mastery-bar-fill.competent { background: #03a89e; }
-.mastery-bar-fill.proficient { background: #0000ff; }
-.mastery-bar-fill.expert { background: #aa00aa; }
-.mastery-bar-fill.master { background: #ff8c00; }
+.mastery-bar-fill.beginner {
+    background: #808080;
+}
+
+.mastery-bar-fill.developing {
+    background: #008000;
+}
+
+.mastery-bar-fill.competent {
+    background: #03a89e;
+}
+
+.mastery-bar-fill.proficient {
+    background: #0000ff;
+}
+
+.mastery-bar-fill.expert {
+    background: #aa00aa;
+}
+
+.mastery-bar-fill.master {
+    background: #ff8c00;
+}
 
 .mastery-bar-value {
     font-size: 0.625rem;
