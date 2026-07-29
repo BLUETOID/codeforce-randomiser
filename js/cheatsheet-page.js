@@ -23,6 +23,9 @@ const CheatsheetPage = {
             <div class="cheatsheet-header">
                 <h1>Competitive Programming Cheatsheet</h1>
                 <p class="cheatsheet-subtitle">Essential tips, formulas, and strategies for problem solving</p>
+                <div style="margin-top: 16px; max-width: 450px; margin-left: auto; margin-right: auto;">
+                    <input type="text" id="cheatsheet-page-search" placeholder="🔍 Search topics, algorithms, or formulas..." class="handle-input-large" style="padding: 10px 16px; font-size: 0.9rem;">
+                </div>
             </div>
 
             <div class="cheatsheet-categories">
@@ -34,8 +37,10 @@ const CheatsheetPage = {
             </div>
         `;
 
-        // Wire up category navigation
+        // Wire events and copy buttons
         this.wireEvents();
+        this.addCopyButtons();
+        this.wireSearch();
     },
 
     /**
@@ -59,6 +64,59 @@ const CheatsheetPage = {
                 <span class="category-name">${cat.name}</span>
             </button>
         `).join('');
+    },
+
+    /**
+     * Add copy buttons to code blocks
+     */
+    addCopyButtons() {
+        document.querySelectorAll('.cheatsheet-card pre').forEach(pre => {
+            if (pre.parentElement.querySelector('.copy-code-btn')) return;
+
+            const btn = document.createElement('button');
+            btn.className = 'copy-code-btn';
+            btn.innerHTML = '<i class="fa-regular fa-copy"></i> Copy';
+            btn.style.position = 'absolute';
+            btn.style.top = '8px';
+            btn.style.right = '8px';
+
+            pre.parentElement.style.position = 'relative';
+            pre.parentElement.appendChild(btn);
+
+            btn.addEventListener('click', () => {
+                const code = pre.textContent;
+                navigator.clipboard.writeText(code).then(() => {
+                    btn.innerHTML = '<i class="fa-solid fa-check"></i> Copied!';
+                    btn.classList.add('copied');
+                    setTimeout(() => {
+                        btn.innerHTML = '<i class="fa-regular fa-copy"></i> Copy';
+                        btn.classList.remove('copied');
+                    }, 2000);
+                });
+            });
+        });
+    },
+
+    /**
+     * Wire up live search across all cheatsheet cards
+     */
+    wireSearch() {
+        const searchInput = document.getElementById('cheatsheet-page-search');
+        if (!searchInput) return;
+
+        searchInput.addEventListener('input', (e) => {
+            const query = e.target.value.toLowerCase().trim();
+            const cards = document.querySelectorAll('.cheatsheet-card, .cheatsheet-section');
+
+            cards.forEach(card => {
+                const text = card.textContent.toLowerCase();
+                if (!query || text.includes(query)) {
+                    card.style.display = '';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        });
     },
 
     /**

@@ -128,6 +128,7 @@ const Recommendations = {
             zones,
             successByRating,
             solvedProblems: Array.from(solvedProblems.values()),
+            attemptedProblems: Array.from(attemptedProblems.values()),
             recentActivity: this.analyzeRecentActivity(solvedProblems)
         };
     },

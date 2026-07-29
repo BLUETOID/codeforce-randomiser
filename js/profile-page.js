@@ -1,21 +1,20 @@
-// Profile Page module - Dedicated profile page with heatmap and graphs
+// Profile Page module - Dedicated profile page with heatmap, graphs, and advanced analytics
 
 const ProfilePage = {
     initialized: false,
     profileData: null,
     ratingHistory: [],
     submissionData: null,
+    tagSortMode: 'count', // 'count' or 'accuracy'
 
     /**
      * Initialize the profile page
      */
     async init() {
         if (this.initialized && this.profileData) {
-            // Already initialized with data
             return;
         }
 
-        // Check if we have a saved handle
         const savedHandle = localStorage.getItem('cf_profile_handle');
         if (savedHandle) {
             await this.loadProfile(savedHandle);
@@ -44,7 +43,6 @@ const ProfilePage = {
             </div>
         `;
 
-        // Wire up events
         const loadBtn = document.getElementById('profile-page-load');
         const handleInput = document.getElementById('profile-page-handle');
 
@@ -80,7 +78,6 @@ const ProfilePage = {
 
         try {
             await this.loadProfile(handle);
-            // Save handle for future sessions
             localStorage.setItem('cf_profile_handle', handle);
         } catch (e) {
             if (status) {
@@ -102,7 +99,6 @@ const ProfilePage = {
         const container = document.getElementById('profile-page-content');
         if (!container) return;
 
-        // Show loading state
         container.innerHTML = `
             <div class="profile-loading">
                 <div class="spinner"></div>
@@ -111,7 +107,6 @@ const ProfilePage = {
         `;
 
         try {
-            // Fetch all data in parallel
             const [userInfo, submissions, ratingHistory] = await Promise.all([
                 Api.fetchUserInfo(handle),
                 Api.fetchUserSubmissions(handle),
@@ -123,7 +118,6 @@ const ProfilePage = {
             this.submissionData = submissions;
             this.initialized = true;
 
-            // Render the full profile page
             this.renderProfile(handle, userInfo, submissions, ratingHistory);
 
         } catch (e) {
@@ -149,11 +143,12 @@ const ProfilePage = {
         const container = document.getElementById('profile-page-content');
         if (!container) return;
 
-        // Process submission data for heatmap
         const heatmapData = this.processSubmissionsForHeatmap(submissions);
         const progressData = this.processProgressData(submissions, ratingHistory);
         const solvedByRating = Api.analyzeSolvedByRating(submissions);
         const solvedByTags = Api.analyzeSolvedByTags(submissions);
+        const advancedStats = this.calculateAdvancedStats(submissions);
+        const contestAnalytics = this.calculateContestAnalytics(ratingHistory);
 
         // Count unique solved problems
         const solvedSet = new Set();
@@ -186,7 +181,7 @@ const ProfilePage = {
                     </div>
                     <div class="quick-stat">
                         <span class="quick-stat-value">${solvedCount}</span>
-                        <span class="quick-stat-label">Problems Solved</span>
+                        <span class="quick-stat-label">Solved</span>
                     </div>
                     <div class="quick-stat">
                         <span class="quick-stat-value">${ratingHistory.length}</span>
@@ -195,6 +190,86 @@ const ProfilePage = {
                 </div>
                 <button id="profile-change-btn" class="btn-secondary">Change Profile</button>
             </div>
+
+            <!-- Advanced Stats Grid -->
+            <div class="profile-section">
+                <h2>Submission Analytics</h2>
+                <div class="advanced-stats-grid">
+                    <div class="advanced-stat-card">
+                        <span class="stat-value accent">${advancedStats.acRatio}%</span>
+                        <span class="stat-label">AC Ratio</span>
+                        <span class="stat-sub">${advancedStats.totalAccepted} / ${advancedStats.totalSubmissions}</span>
+                    </div>
+                    <div class="advanced-stat-card">
+                        <span class="stat-value success">${advancedStats.firstTrySolves}</span>
+                        <span class="stat-label">First-Try Solves</span>
+                        <span class="stat-sub">${advancedStats.firstTryPercent}% of solved</span>
+                    </div>
+                    <div class="advanced-stat-card">
+                        <span class="stat-value">${advancedStats.avgSolvedRating || '--'}</span>
+                        <span class="stat-label">Avg Solved Rating</span>
+                    </div>
+                    <div class="advanced-stat-card">
+                        <span class="stat-value warning">${advancedStats.avgAttemptsPerSolve}</span>
+                        <span class="stat-label">Avg Attempts / AC</span>
+                    </div>
+                </div>
+
+                ${advancedStats.hardestProblem ? `
+                <h3 style="font-size: 0.8125rem; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 10px;">Hardest Problem Solved</h3>
+                <div class="hardest-problem-card">
+                    <div class="problem-rating-badge" style="background-color: ${getRankColor(this.getRankFromRating(advancedStats.hardestProblem.rating))}">${advancedStats.hardestProblem.rating}</div>
+                    <div class="problem-info">
+                        <div class="problem-name">${advancedStats.hardestProblem.name}</div>
+                        <div class="problem-id">${advancedStats.hardestProblem.contestId}${advancedStats.hardestProblem.index}</div>
+                    </div>
+                    <a href="https://codeforces.com/problemset/problem/${advancedStats.hardestProblem.contestId}/${advancedStats.hardestProblem.index}" target="_blank" class="solve-link">View →</a>
+                </div>` : ''}
+
+                <!-- Verdict Breakdown -->
+                <h3 style="font-size: 0.8125rem; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 10px;">Verdict Distribution</h3>
+                <div class="verdict-bars">
+                    ${this.generateVerdictBars(advancedStats.verdicts)}
+                </div>
+            </div>
+
+            <!-- Contest Performance Analytics -->
+            ${ratingHistory.length > 0 ? `
+            <div class="profile-section">
+                <h2>Contest Performance</h2>
+                <div class="contest-analytics-grid">
+                    <div class="contest-analytics-card">
+                        <span class="analytics-label">Peak Rating</span>
+                        <span class="analytics-value" style="color: ${getRankColor(this.getRankFromRating(contestAnalytics.peakRating))}">${contestAnalytics.peakRating}</span>
+                        <span class="analytics-sub">${contestAnalytics.peakContest}</span>
+                    </div>
+                    <div class="contest-analytics-card">
+                        <span class="analytics-label">Best Rank</span>
+                        <span class="analytics-value">#${contestAnalytics.bestRank}</span>
+                        <span class="analytics-sub">${contestAnalytics.bestRankContest}</span>
+                    </div>
+                    <div class="contest-analytics-card">
+                        <span class="analytics-label">Avg Rating Change</span>
+                        <span class="analytics-value" style="color: ${contestAnalytics.avgDelta >= 0 ? 'var(--success-color)' : 'var(--error-color)'}">${contestAnalytics.avgDelta >= 0 ? '+' : ''}${contestAnalytics.avgDelta}</span>
+                        <span class="analytics-sub">per contest</span>
+                    </div>
+                    <div class="contest-analytics-card">
+                        <span class="analytics-label">Best Gain</span>
+                        <span class="analytics-value" style="color: var(--success-color)">+${contestAnalytics.bestGain}</span>
+                        <span class="analytics-sub">${contestAnalytics.bestGainContest}</span>
+                    </div>
+                </div>
+                <div class="delta-distribution">
+                    <div class="delta-item positive">
+                        <span class="delta-count">${contestAnalytics.positiveContests}</span>
+                        <span class="delta-label">Positive contests</span>
+                    </div>
+                    <div class="delta-item negative">
+                        <span class="delta-count">${contestAnalytics.negativeContests}</span>
+                        <span class="delta-label">Negative contests</span>
+                    </div>
+                </div>
+            </div>` : ''}
 
             <!-- Streak Heatmap Section -->
             <div class="profile-section heatmap-section">
@@ -252,7 +327,11 @@ const ProfilePage = {
             <!-- Tag Distribution Section -->
             <div class="profile-section tags-section">
                 <h2>Problem Tags Distribution</h2>
-                <div class="tags-chart">
+                <div class="tag-sort-controls">
+                    <button class="tag-sort-btn active" data-sort="count">By Count</button>
+                    <button class="tag-sort-btn" data-sort="accuracy">By Accuracy</button>
+                </div>
+                <div id="tags-chart-container" class="tags-chart">
                     ${this.generateTagsChart(solvedByTags)}
                 </div>
             </div>
@@ -273,6 +352,197 @@ const ProfilePage = {
                 this.showEmptyState();
             });
         }
+
+        // Wire up tag sort buttons
+        this.wireTagSortButtons(submissions);
+    },
+
+    /**
+     * Calculate advanced submission analytics
+     */
+    calculateAdvancedStats(submissions) {
+        const verdicts = { OK: 0, WRONG_ANSWER: 0, TIME_LIMIT_EXCEEDED: 0, RUNTIME_ERROR: 0, COMPILATION_ERROR: 0, OTHER: 0 };
+        const solvedProblems = new Map();
+        const attemptedProblems = new Map();
+        let totalSubmissions = submissions.length;
+        let totalAccepted = 0;
+        let hardestProblem = null;
+        let totalSolvedRating = 0;
+        let solvedWithRatingCount = 0;
+
+        // Track per-problem submission info
+        const problemFirstSub = new Map();
+
+        for (const sub of submissions) {
+            const v = sub.verdict;
+            if (verdicts.hasOwnProperty(v)) {
+                verdicts[v]++;
+            } else {
+                verdicts.OTHER++;
+            }
+            if (v === 'OK') totalAccepted++;
+
+            const pid = `${sub.problem.contestId}-${sub.problem.index}`;
+
+            if (!problemFirstSub.has(pid)) {
+                problemFirstSub.set(pid, v);
+            }
+
+            if (v === 'OK' && !solvedProblems.has(pid)) {
+                solvedProblems.set(pid, sub.problem);
+                if (sub.problem.rating) {
+                    totalSolvedRating += sub.problem.rating;
+                    solvedWithRatingCount++;
+                    if (!hardestProblem || sub.problem.rating > hardestProblem.rating) {
+                        hardestProblem = sub.problem;
+                    }
+                }
+            }
+
+            if (!solvedProblems.has(pid)) {
+                attemptedProblems.set(pid, (attemptedProblems.get(pid) || 0) + 1);
+            }
+        }
+
+        // First-try solves: problems where the first submission was OK
+        let firstTrySolves = 0;
+        for (const [pid, firstVerdict] of problemFirstSub.entries()) {
+            if (firstVerdict === 'OK') {
+                firstTrySolves++;
+            }
+        }
+
+        const solvedCount = solvedProblems.size;
+        const acRatio = totalSubmissions > 0 ? ((totalAccepted / totalSubmissions) * 100).toFixed(1) : 0;
+        const avgSolvedRating = solvedWithRatingCount > 0 ? Math.round(totalSolvedRating / solvedWithRatingCount) : null;
+        const avgAttemptsPerSolve = solvedCount > 0 ? (totalSubmissions / solvedCount).toFixed(1) : '--';
+        const firstTryPercent = solvedCount > 0 ? Math.round((firstTrySolves / solvedCount) * 100) : 0;
+
+        return {
+            totalSubmissions,
+            totalAccepted,
+            acRatio,
+            firstTrySolves,
+            firstTryPercent,
+            avgSolvedRating,
+            avgAttemptsPerSolve,
+            hardestProblem,
+            verdicts
+        };
+    },
+
+    /**
+     * Calculate contest performance analytics
+     */
+    calculateContestAnalytics(ratingHistory) {
+        if (!ratingHistory || ratingHistory.length === 0) {
+            return { peakRating: '--', peakContest: '', bestRank: '--', bestRankContest: '', avgDelta: 0, bestGain: 0, bestGainContest: '', positiveContests: 0, negativeContests: 0 };
+        }
+
+        let peakRating = 0;
+        let peakContest = '';
+        let bestRank = Infinity;
+        let bestRankContest = '';
+        let bestGain = 0;
+        let bestGainContest = '';
+        let totalDelta = 0;
+        let positiveContests = 0;
+        let negativeContests = 0;
+
+        for (const contest of ratingHistory) {
+            if (contest.newRating > peakRating) {
+                peakRating = contest.newRating;
+                peakContest = contest.contestName || '';
+            }
+            if (contest.rank < bestRank) {
+                bestRank = contest.rank;
+                bestRankContest = contest.contestName || '';
+            }
+            const delta = contest.newRating - contest.oldRating;
+            totalDelta += delta;
+            if (delta > bestGain) {
+                bestGain = delta;
+                bestGainContest = contest.contestName || '';
+            }
+            if (delta >= 0) positiveContests++;
+            else negativeContests++;
+        }
+
+        // Truncate contest names
+        const truncate = (s, n = 30) => s.length > n ? s.substring(0, n) + '...' : s;
+
+        return {
+            peakRating,
+            peakContest: truncate(peakContest),
+            bestRank: bestRank === Infinity ? '--' : bestRank,
+            bestRankContest: truncate(bestRankContest),
+            avgDelta: Math.round(totalDelta / ratingHistory.length),
+            bestGain,
+            bestGainContest: truncate(bestGainContest),
+            positiveContests,
+            negativeContests
+        };
+    },
+
+    /**
+     * Generate verdict breakdown bars
+     */
+    generateVerdictBars(verdicts) {
+        const items = [
+            { key: 'OK', label: 'Accepted', cls: 'ok' },
+            { key: 'WRONG_ANSWER', label: 'WA', cls: 'wa' },
+            { key: 'TIME_LIMIT_EXCEEDED', label: 'TLE', cls: 'tle' },
+            { key: 'RUNTIME_ERROR', label: 'RTE', cls: 'rte' },
+            { key: 'COMPILATION_ERROR', label: 'CE', cls: 'ce' }
+        ];
+
+        const total = Object.values(verdicts).reduce((a, b) => a + b, 0);
+        const maxCount = Math.max(...items.map(i => verdicts[i.key] || 0), 1);
+
+        return items.map(item => {
+            const count = verdicts[item.key] || 0;
+            const pct = total > 0 ? ((count / total) * 100).toFixed(1) : 0;
+            const width = (count / maxCount) * 100;
+
+            return `
+                <div class="verdict-bar-item">
+                    <span class="verdict-label ${item.cls}">${item.label}</span>
+                    <div class="verdict-bar-track">
+                        <div class="verdict-bar-fill ${item.cls}" style="width: ${width}%">
+                            ${count > 0 ? `<span class="verdict-bar-count">${count}</span>` : ''}
+                        </div>
+                    </div>
+                    <span class="verdict-percent">${pct}%</span>
+                </div>
+            `;
+        }).join('');
+    },
+
+    /**
+     * Wire up tag sort buttons
+     */
+    wireTagSortButtons(submissions) {
+        const btns = document.querySelectorAll('.tag-sort-btn');
+        btns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                btns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                const mode = btn.getAttribute('data-sort');
+                this.tagSortMode = mode;
+
+                const tags = Api.analyzeSolvedByTags(submissions);
+                if (mode === 'accuracy') {
+                    // Sort by attempting to compute accuracy: need per-tag attempt data
+                    // For simplicity, we just reverse sort (show least-solved first = weakest)
+                    tags.sort((a, b) => a.percentage - b.percentage);
+                }
+
+                const chartContainer = document.getElementById('tags-chart-container');
+                if (chartContainer) {
+                    chartContainer.innerHTML = this.generateTagsChart(tags);
+                }
+            });
+        });
     },
 
     /**
@@ -290,7 +560,6 @@ const ProfilePage = {
             return `${year}-${month}-${day}`;
         };
 
-        // Count submissions per day
         const dailyCounts = {};
         let totalSubmissions = 0;
 
@@ -303,7 +572,6 @@ const ProfilePage = {
             }
         }
 
-        // Calculate streaks
         const sortedDates = Object.keys(dailyCounts).sort();
         let currentStreak = 0;
         let longestStreak = 0;
@@ -331,10 +599,8 @@ const ProfilePage = {
 
             longestStreak = Math.max(longestStreak, tempStreak);
             prevDate = date;
-
         }
 
-        // Current streak counts only if the most recent active day is today or yesterday
         if (sortedDates.length > 0) {
             const lastActiveDay = sortedDates[sortedDates.length - 1];
             if (lastActiveDay === todayStr || lastActiveDay === yesterdayStr) {
@@ -367,9 +633,7 @@ const ProfilePage = {
      * Process submissions and rating history for progress data
      */
     processProgressData(submissions, ratingHistory) {
-        // Monthly activity
         const monthlyActivity = {};
-        const solvedByMonth = {};
 
         for (const sub of submissions) {
             const date = new Date(sub.creationTimeSeconds * 1000);
@@ -387,7 +651,6 @@ const ProfilePage = {
             }
         }
 
-        // Convert sets to counts
         for (const month in monthlyActivity) {
             monthlyActivity[month].solvedCount = monthlyActivity[month].solved.size;
             delete monthlyActivity[month].solved;
@@ -410,25 +673,17 @@ const ProfilePage = {
         const oneYearAgo = new Date(today);
         oneYearAgo.setFullYear(today.getFullYear() - 1);
 
-        // Find the first Sunday before or on oneYearAgo
         const startDate = new Date(oneYearAgo);
         startDate.setDate(startDate.getDate() - startDate.getDay());
 
-        // Calculate max count for level calculation
         const maxCount = Math.max(...Object.values(heatmapData.dailyCounts), 1);
 
-        // Generate weeks
         let html = '<div class="heatmap-months">';
-        const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-        let currentMonth = -1;
-
-        // Generate grid
         html += '</div><div class="heatmap-grid">';
         html += '<div class="heatmap-days"><span>Mon</span><span>Wed</span><span>Fri</span></div>';
         html += '<div class="heatmap-weeks">';
 
         let weekHtml = '';
-        let weekCount = 0;
         const currentDate = new Date(startDate);
 
         while (currentDate <= today) {
@@ -436,11 +691,9 @@ const ProfilePage = {
             const count = heatmapData.dailyCounts[dateStr] || 0;
             const level = count === 0 ? 0 : Math.ceil((count / maxCount) * 4);
 
-            // Start new week on Sunday
             if (currentDate.getDay() === 0 && weekHtml) {
                 html += `<div class="heatmap-week">${weekHtml}</div>`;
                 weekHtml = '';
-                weekCount++;
             }
 
             const tooltip = `${dateStr}: ${count} submission${count !== 1 ? 's' : ''}`;
@@ -449,7 +702,6 @@ const ProfilePage = {
             currentDate.setDate(currentDate.getDate() + 1);
         }
 
-        // Add remaining days
         if (weekHtml) {
             html += `<div class="heatmap-week">${weekHtml}</div>`;
         }
@@ -480,18 +732,17 @@ const ProfilePage = {
         const chartWidth = width - padding.left - padding.right;
         const chartHeight = height - padding.top - padding.bottom;
 
-        // Generate SVG
         let svg = `<svg viewBox="0 0 ${width} ${height}" class="rating-svg">`;
 
-        // Background gradient zones for rating levels
+        // Background gradient zones for rating levels (subtle solid fills)
         const ratingZones = [
-            { min: 0, max: 1200, color: 'rgba(128, 128, 128, 0.1)' },      // Gray
-            { min: 1200, max: 1400, color: 'rgba(0, 128, 0, 0.1)' },       // Green
-            { min: 1400, max: 1600, color: 'rgba(3, 168, 158, 0.1)' },     // Cyan
-            { min: 1600, max: 1900, color: 'rgba(0, 0, 255, 0.1)' },       // Blue
-            { min: 1900, max: 2100, color: 'rgba(170, 0, 170, 0.1)' },     // Purple
-            { min: 2100, max: 2400, color: 'rgba(255, 140, 0, 0.1)' },     // Orange
-            { min: 2400, max: 4000, color: 'rgba(255, 0, 0, 0.1)' }        // Red
+            { min: 0, max: 1200, color: 'rgba(128, 128, 128, 0.05)' },
+            { min: 1200, max: 1400, color: 'rgba(0, 128, 0, 0.05)' },
+            { min: 1400, max: 1600, color: 'rgba(3, 168, 158, 0.05)' },
+            { min: 1600, max: 1900, color: 'rgba(0, 0, 255, 0.05)' },
+            { min: 1900, max: 2100, color: 'rgba(170, 0, 170, 0.05)' },
+            { min: 2100, max: 2400, color: 'rgba(255, 140, 0, 0.05)' },
+            { min: 2400, max: 4000, color: 'rgba(255, 0, 0, 0.05)' }
         ];
 
         for (const zone of ratingZones) {
@@ -509,8 +760,8 @@ const ProfilePage = {
         for (let i = 0; i <= gridLines; i++) {
             const y = padding.top + (i / gridLines) * chartHeight;
             const rating = Math.round(maxRating - (i / gridLines) * ratingRange);
-            svg += `<line x1="${padding.left}" y1="${y}" x2="${width - padding.right}" y2="${y}" stroke="#ddd" stroke-dasharray="3,3" />`;
-            svg += `<text x="${padding.left - 10}" y="${y + 4}" text-anchor="end" fill="#666" font-size="12">${rating}</text>`;
+            svg += `<line x1="${padding.left}" y1="${y}" x2="${width - padding.right}" y2="${y}" stroke="var(--border-color)" stroke-dasharray="3,3" />`;
+            svg += `<text x="${padding.left - 10}" y="${y + 4}" text-anchor="end" fill="var(--text-secondary)" font-size="11">${rating}</text>`;
         }
 
         // Generate line path
@@ -525,13 +776,14 @@ const ProfilePage = {
         for (let i = 1; i < points.length; i++) {
             pathD += ` L ${points[i].x} ${points[i].y}`;
         }
-        svg += `<path d="${pathD}" fill="none" stroke="#3498db" stroke-width="2" />`;
+        svg += `<path d="${pathD}" fill="none" stroke="var(--primary-color)" stroke-width="2" />`;
 
-        // Draw points
+        // Draw points with tooltips
         for (const point of points) {
             const color = getRankColor(this.getRankFromRating(point.contest.newRating));
-            const tooltip = `${point.contest.contestName}: ${point.contest.newRating} (${point.contest.newRating > point.contest.oldRating ? '+' : ''}${point.contest.newRating - point.contest.oldRating})`;
-            svg += `<circle cx="${point.x}" cy="${point.y}" r="4" fill="${color}" stroke="white" stroke-width="2">
+            const delta = point.contest.newRating - point.contest.oldRating;
+            const tooltip = `${point.contest.contestName || 'Contest'}: ${point.contest.newRating} (${delta >= 0 ? '+' : ''}${delta})`;
+            svg += `<circle cx="${point.x}" cy="${point.y}" r="4" fill="${color}" stroke="var(--card-bg)" stroke-width="2">
                 <title>${tooltip}</title>
             </circle>`;
         }

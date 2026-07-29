@@ -123,8 +123,9 @@ const App = {
             // Practice Guide elements
             practiceGuideSection: document.getElementById('practice-guide-section'),
             practiceGuideContent: document.getElementById('practice-guide-content'),
-            recommendedProblemsSection: document.getElementById('recommended-problems-section'),
-            recommendedProblemsContent: document.getElementById('recommended-problems-content'),
+            recommendedProblemsSection: document.getElementById('rec-tracks-section'),
+            recommendedProblemsContent: document.getElementById('rec-track-panels'),
+            masterySection: document.getElementById('mastery-matrix-section'),
 
             // Accordion badges
             profileBadge: document.getElementById('profile-badge'),
@@ -901,20 +902,14 @@ const App = {
                 }
             }
 
-            // Get and display recommended problems
-            const recommendedProblems = await Recommendations.getRecommendedProblems(this.userAnalysis, 6);
-            if (this.elements.recommendedProblemsSection && this.elements.recommendedProblemsContent) {
-                const problemsHTML = Recommendations.generateRecommendedProblemsHTML(recommendedProblems);
-                this.elements.recommendedProblemsContent.innerHTML = problemsHTML;
-                this.elements.recommendedProblemsSection.classList.remove('hidden');
-            }
-
+            // Initialize the enhanced recommendation page tracks
             if (typeof RecommendationsPage !== 'undefined') {
+                RecommendationsPage.initialized = false;
+                RecommendationsPage.tracks = {};
                 RecommendationsPage.hideEmptyState();
             }
         } catch (e) {
             console.error('Failed to load recommendations:', e);
-            // Don't show error to user - recommendations are optional enhancement
         }
     },
 
@@ -929,6 +924,9 @@ const App = {
         }
         if (this.elements.recommendedProblemsSection) {
             this.elements.recommendedProblemsSection.classList.add('hidden');
+        }
+        if (this.elements.masterySection) {
+            this.elements.masterySection.classList.add('hidden');
         }
 
         if (typeof RecommendationsPage !== 'undefined') {

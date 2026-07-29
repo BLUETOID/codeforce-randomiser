@@ -320,9 +320,31 @@
                         <div id="practice-guide-content"></div>
                     </section>
 
-                    <!-- Recommended Problems Section -->
-                    <section id="recommended-problems-section" class="recommended-problems-section hidden">
-                        <div id="recommended-problems-content"></div>
+                    <!-- Track Tabs & Problems -->
+                    <section id="rec-tracks-section" class="rec-tracks-container hidden">
+                        <div class="rec-track-header">
+                            <div>
+                                <h3>Recommended Problems</h3>
+                                <p class="track-description">Hand-picked problems based on your profile analysis</p>
+                            </div>
+                            <div style="display: flex; gap: 8px; align-items: center;">
+                                <button id="spoiler-toggle-btn" class="spoiler-toggle" title="Hide tags & ratings">
+                                    <i class="fa-solid fa-eye-slash"></i> Spoiler-Free
+                                </button>
+                                <button id="refresh-recommendations-btn" class="btn-secondary btn-sm">
+                                    <i class="fa-solid fa-rotate"></i> Refresh
+                                </button>
+                            </div>
+                        </div>
+                        <div id="rec-track-tabs" class="rec-track-tabs"></div>
+                        <div id="rec-track-panels"></div>
+                    </section>
+
+                    <!-- Topic Mastery Matrix -->
+                    <section id="mastery-matrix-section" class="profile-section hidden">
+                        <h2>Topic Mastery</h2>
+                        <p class="section-subtitle">Your proficiency level across different problem topics</p>
+                        <div id="mastery-matrix-content" class="mastery-matrix"></div>
                     </section>
 
                     <!-- Weak Tags Section -->
