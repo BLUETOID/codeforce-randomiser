@@ -811,7 +811,7 @@ body.dark-mode .theme-icon::after {
 .profile-stats {
     background: var(--card-bg);
     border-radius: 10px;
-    padding: 16px;
+    padding: 16p;
     border: 1px solid var(--border-color);
     box-shadow: var(--shadow-md);
     position: relative;
